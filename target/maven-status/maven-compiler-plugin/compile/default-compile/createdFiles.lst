@@ -1,0 +1,9 @@
+ec/gob/cnt/util/db/jpa/exceptions/RollbackFailureException.class
+ec/gob/cnt/util/db/jpa/Parametro.class
+ec/gob/cnt/util/db/jpa/JPA.class
+ec/gob/cnt/util/db/jpa/exceptions/IllegalOrphanException.class
+ec/gob/cnt/util/db/jpa/exceptions/PreexistingEntityException.class
+ec/gob/cnt/util/db/jpa/Transaccion.class
+ec/gob/cnt/util/db/jpa/exceptions/NonexistentEntityException.class
+net/qoopo/qoopo/core/db/daos/GenericDAO.class
+ec/gob/cnt/util/db/jpa/ParametroJPA.class
