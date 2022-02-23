@@ -1,9 +1,0 @@
-/home/noroot/cnt/desarrollo/JAVA/cnt-util/cnt-util-db/src/main/java/ec/gob/cnt/util/db/jpa/JPA.java
-/home/noroot/cnt/desarrollo/JAVA/cnt-util/cnt-util-db/src/main/java/ec/gob/cnt/util/db/jpa/ParametroJPA.java
-/home/noroot/cnt/desarrollo/JAVA/cnt-util/cnt-util-db/src/main/java/ec/gob/cnt/util/db/jpa/Transaccion.java
-/home/noroot/cnt/desarrollo/JAVA/cnt-util/cnt-util-db/src/main/java/ec/gob/cnt/util/db/jpa/exceptions/RollbackFailureException.java
-/home/noroot/cnt/desarrollo/JAVA/cnt-util/cnt-util-db/src/main/java/ec/gob/cnt/util/db/daos/GenericDAO.java
-/home/noroot/cnt/desarrollo/JAVA/cnt-util/cnt-util-db/src/main/java/ec/gob/cnt/util/db/jpa/exceptions/IllegalOrphanException.java
-/home/noroot/cnt/desarrollo/JAVA/cnt-util/cnt-util-db/src/main/java/ec/gob/cnt/util/db/jpa/Parametro.java
-/home/noroot/cnt/desarrollo/JAVA/cnt-util/cnt-util-db/src/main/java/ec/gob/cnt/util/db/jpa/exceptions/NonexistentEntityException.java
-/home/noroot/cnt/desarrollo/JAVA/cnt-util/cnt-util-db/src/main/java/ec/gob/cnt/util/db/jpa/exceptions/PreexistingEntityException.java
