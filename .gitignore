@@ -1,2 +1,16 @@
+<<<<<<< HEAD
 /target/
 target/
+=======
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# https://github.com/takari/maven-wrapper#usage-without-binary-jar
+.mvn/wrapper/maven-wrapper.jar
+>>>>>>> 7355c21da3a161a3f416f95c41bff29d5b1e2f84
