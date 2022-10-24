@@ -1,4 +1,4 @@
-package ec.gob.cnt.util.db.jpa;
+package net.qoopo.util.db.jpa;
 
 import java.io.Serializable;
 import javax.persistence.ParameterMode;

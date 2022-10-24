@@ -1,4 +1,4 @@
-package ec.gob.cnt.util.db.jpa.exceptions;
+package net.qoopo.util.db.jpa.exceptions;
 
 public class PreexistingEntityException extends Exception {
 

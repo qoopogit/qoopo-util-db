@@ -1,10 +1,10 @@
-package ec.gob.cnt.util.db.daos;
+package net.qoopo.util.db.daos;
 
-import ec.gob.cnt.util.db.jpa.JPA;
-import ec.gob.cnt.util.db.jpa.Transaccion;
-import ec.gob.cnt.util.db.jpa.exceptions.IllegalOrphanException;
-import ec.gob.cnt.util.db.jpa.exceptions.NonexistentEntityException;
-import ec.gob.cnt.util.db.jpa.exceptions.RollbackFailureException;
+import net.qoopo.util.db.jpa.JPA;
+import net.qoopo.util.db.jpa.Transaccion;
+import net.qoopo.util.db.jpa.exceptions.IllegalOrphanException;
+import net.qoopo.util.db.jpa.exceptions.NonexistentEntityException;
+import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
 
 /**
  * Clase que permite realiza las operaciones basicas CRUD sobre cualquier
@@ -14,8 +14,8 @@ import ec.gob.cnt.util.db.jpa.exceptions.RollbackFailureException;
  */
 public interface GenericDAO {
 
-    public static void create(Transaccion transaccion, Object item) throws Exception, RollbackFailureException {
-        JPA.get().setEm(transaccion.getEm()).setClase(item.getClass()).crear(item);
+    public static Object create(Transaccion transaccion, Object item) throws Exception, RollbackFailureException {
+        return JPA.get().setEm(transaccion.getEm()).setClase(item.getClass()).crear(item);
     }
 
     public static Object edit(Transaccion transaccion, Object item) throws Exception, NonexistentEntityException, RollbackFailureException, IllegalOrphanException {

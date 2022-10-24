@@ -1,4 +1,4 @@
-package ec.gob.cnt.util.db.jpa;
+package net.qoopo.util.db.jpa;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +48,4 @@ public class Parametro {
         return lista;
     }
 
-//    class Builder {
-//
-//        private Parametro parametro;
-//
-//    }
 }

@@ -1,8 +1,8 @@
-package ec.gob.cnt.util.db.jpa;
+package net.qoopo.util.db.jpa;
 
-import ec.gob.cnt.util.db.jpa.exceptions.IllegalOrphanException;
-import ec.gob.cnt.util.db.jpa.exceptions.NonexistentEntityException;
-import ec.gob.cnt.util.db.jpa.exceptions.RollbackFailureException;
+import net.qoopo.util.db.jpa.exceptions.IllegalOrphanException;
+import net.qoopo.util.db.jpa.exceptions.NonexistentEntityException;
+import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
 import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
