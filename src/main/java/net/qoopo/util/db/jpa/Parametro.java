@@ -2,7 +2,7 @@ package net.qoopo.util.db.jpa;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.ParameterMode;
+import jakarta.persistence.ParameterMode;
 
 /**
  *

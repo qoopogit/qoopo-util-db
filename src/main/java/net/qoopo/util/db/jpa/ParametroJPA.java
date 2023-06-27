@@ -1,7 +1,7 @@
 package net.qoopo.util.db.jpa;
 
 import java.io.Serializable;
-import javax.persistence.ParameterMode;
+import jakarta.persistence.ParameterMode;
 
 /**
  *
