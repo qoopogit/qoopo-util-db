@@ -1,15 +1,17 @@
 package net.qoopo.util.db.jpa;
 
-import net.qoopo.util.db.jpa.exceptions.IllegalOrphanException;
-import net.qoopo.util.db.jpa.exceptions.NonexistentEntityException;
-import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
 import java.io.Serializable;
 import java.util.List;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.StoredProcedureQuery;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import net.qoopo.util.db.jpa.exceptions.IllegalOrphanException;
+import net.qoopo.util.db.jpa.exceptions.NonexistentEntityException;
+import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
 
 /**
  * Controlador Jpa Genérico
@@ -31,7 +33,7 @@ public class JPA<T> implements Serializable {
     private int maxResults = -1;
     private int firstResult = -1;
 
-    private JPA() {
+    public JPA() {
         //
     }
 
@@ -59,9 +61,9 @@ public class JPA<T> implements Serializable {
 
     private List<T> findEntities(boolean all, int maxResults, int firstResult) {
         try {
-            CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
+            CriteriaQuery<T> cq = em.getCriteriaBuilder().createQuery(clase);
             cq.select(cq.from(clase));
-            Query q = em.createQuery(cq);
+            TypedQuery<T> q = em.createQuery(cq);
             if (!all) {
                 q.setMaxResults(maxResults);
                 q.setFirstResult(firstResult);
@@ -76,13 +78,13 @@ public class JPA<T> implements Serializable {
         return em.find(clase, id);
     }
 
-    public int getCount() {
+    public Long getCount() {
         try {
-            CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
+            CriteriaQuery<Long> cq = em.getCriteriaBuilder().createQuery(Long.class);
             Root<T> rt = cq.from(clase);
             cq.select(em.getCriteriaBuilder().count(rt));
             Query q = em.createQuery(cq);
-            return ((Long) q.getSingleResult()).intValue();
+            return ((Long) q.getSingleResult());
         } finally {
             //
         }
@@ -118,7 +120,8 @@ public class JPA<T> implements Serializable {
      */
     private void configStoreProcedureQuery(StoredProcedureQuery q) {
         if (storeParam != null && storeParam.getLista() != null && !storeParam.getLista().isEmpty()) {
-            storeParam.getLista().forEach(p -> q.registerStoredProcedureParameter(p.getParametro(), p.getParameterClass(), p.getParameterMode()));
+            storeParam.getLista().forEach(p -> q.registerStoredProcedureParameter(p.getParametro(),
+                    p.getParameterClass(), p.getParameterMode()));
         }
     }
 
@@ -176,7 +179,7 @@ public class JPA<T> implements Serializable {
      * @param query
      * @return
      */
-    public List<Object> ejecutarQueryList(String query) {
+    public List<T> ejecutarQueryList(String query) {
         try {
             Query q = em.createQuery(query);
             configQuery(q);
@@ -290,37 +293,37 @@ public class JPA<T> implements Serializable {
         return hints;
     }
 
-    public JPA setHints(List<ParametroJPA> hints) {
+    public JPA<T> setHints(List<ParametroJPA> hints) {
         this.hints = hints;
         return this;
     }
 
-    public JPA setClase(Class<T> entityClass) {
+    public JPA<T> setClase(Class<T> entityClass) {
         this.clase = entityClass;
         return this;
     }
 
-    public JPA setEm(EntityManager em) {
+    public JPA<T> setEm(EntityManager em) {
         this.em = em;
         return this;
     }
 
-    public JPA setParam(Parametro param) {
+    public JPA<T> setParam(Parametro param) {
         this.param = param;
         return this;
     }
 
-    public JPA setStoreParam(Parametro param) {
+    public JPA<T> setStoreParam(Parametro param) {
         this.storeParam = param;
         return this;
     }
 
-    public JPA setMaxResults(int maxResults) {
+    public JPA<T> setMaxResults(int maxResults) {
         this.maxResults = maxResults;
         return this;
     }
 
-    public JPA setFirstResult(int firstResult) {
+    public JPA<T> setFirstResult(int firstResult) {
         this.firstResult = firstResult;
         return this;
     }

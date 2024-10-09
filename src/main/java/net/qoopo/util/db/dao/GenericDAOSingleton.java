@@ -1,4 +1,4 @@
-package net.qoopo.util.db.daos;
+package net.qoopo.util.db.dao;
 
 import net.qoopo.util.db.jpa.JPA;
 import net.qoopo.util.db.jpa.Transaccion;
@@ -12,7 +12,7 @@ import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
  *
  * @author alberto
  */
-public interface GenericDAO {
+public class GenericDAOSingleton {
 
     public static Object create(Transaccion transaccion, Object item) throws Exception, RollbackFailureException {
         return JPA.get().setEm(transaccion.getEm()).setClase(item.getClass()).crear(item);
