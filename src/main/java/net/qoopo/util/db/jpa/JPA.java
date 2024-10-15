@@ -2,6 +2,8 @@ package net.qoopo.util.db.jpa;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -21,7 +23,10 @@ import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
  */
 public class JPA<T> implements Serializable {
 
+    private static Logger log = Logger.getLogger("JPA");
+
     public static JPA get() {
+        log.warning("[!!] Instanciando JPA por get");
         return new JPA<>();
     }
 
@@ -37,17 +42,21 @@ public class JPA<T> implements Serializable {
         //
     }
 
-    public T crear(T item) throws RollbackFailureException {
+    public T create(T item) throws RollbackFailureException {
         em.persist(item);
         return item;
     }
 
-    public T editar(T item) throws IllegalOrphanException, NonexistentEntityException, RollbackFailureException {
-        item = em.merge(item);
-        return item;
+    public T edit(T item) throws IllegalOrphanException, NonexistentEntityException, RollbackFailureException {
+        return em.merge(item);
     }
 
-    public void eliminar(T item) throws IllegalOrphanException, NonexistentEntityException, RollbackFailureException {
+    public void deletebyId(Object id)
+            throws IllegalOrphanException, NonexistentEntityException, RollbackFailureException {
+        em.remove(find(id));
+    }
+
+    public void delete(T item) throws IllegalOrphanException, NonexistentEntityException, RollbackFailureException {
         em.remove(em.merge(item));
     }
 
@@ -74,8 +83,8 @@ public class JPA<T> implements Serializable {
         }
     }
 
-    public T buscar(Object id) {
-        return em.find(clase, id);
+    public Optional<T> find(Object id) {
+        return Optional.ofNullable(em.find(clase, id));
     }
 
     public Long getCount() {
@@ -98,7 +107,14 @@ public class JPA<T> implements Serializable {
      */
     private void configQuery(Query q) {
         if (param != null && param.getLista() != null && !param.getLista().isEmpty()) {
-            param.getLista().forEach(p -> q.setParameter((String) p.getParametro(), p.getValor()));
+            param.getLista().forEach(p -> {
+                if(p.getIndice()>0)
+                {
+                    q.setParameter(p.getIndice(), p.getValor());
+                }else{
+                    q.setParameter((String) p.getParametro(), p.getValor());
+                }
+            });
         }
         if (hints != null && !hints.isEmpty()) {
             hints.forEach(p -> q.setHint((String) p.getParametro(), p.getValor()));
@@ -147,7 +163,7 @@ public class JPA<T> implements Serializable {
      * @param query
      * @return
      */
-    public List<Object> ejecutarNamedQueryList(String query) {
+    public List<T> ejecutarNamedQueryList(String query) {
         try {
             Query q = em.createNamedQuery(query);
             configQuery(q);
@@ -163,9 +179,9 @@ public class JPA<T> implements Serializable {
      * @param query
      * @return
      */
-    public Object ejecutarQuery(String query) {
+    public T ejecutarQuery(String query) {
         try {
-            Query q = em.createQuery(query);
+            TypedQuery<T> q = em.createQuery(query, clase);
             configQuery(q);
             return q.getSingleResult();
         } finally {
@@ -181,7 +197,7 @@ public class JPA<T> implements Serializable {
      */
     public List<T> ejecutarQueryList(String query) {
         try {
-            Query q = em.createQuery(query);
+            TypedQuery<T> q = em.createQuery(query, clase);
             configQuery(q);
             return q.getResultList();
         } finally {
@@ -277,7 +293,7 @@ public class JPA<T> implements Serializable {
      * @param query
      * @return
      */
-    public List<Object> ejecutarStoreProcedureList(String query) {
+    public List<T> ejecutarStoreProcedureList(String query) {
         try {
             StoredProcedureQuery q = em.createStoredProcedureQuery(query);
             configStoreProcedureQuery(q);

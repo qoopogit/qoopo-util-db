@@ -2,6 +2,7 @@ package net.qoopo.util.db.jpa;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import jakarta.persistence.ParameterMode;
 
 /**
@@ -33,6 +34,22 @@ public class Parametro {
             lista = new ArrayList<>();
         }
         lista.add(new ParametroJPA(parametro, clase, parameterMode));
+        return this;
+    }
+
+    public Parametro agregar(int indice, Object valor) {
+        if (lista == null) {
+            lista = new ArrayList<>();
+        }
+        lista.add(new ParametroJPA(indice, valor));
+        return this;
+    }
+
+    public Parametro agregar(int indice, Class clase, ParameterMode parameterMode) {
+        if (lista == null) {
+            lista = new ArrayList<>();
+        }
+        lista.add(new ParametroJPA(indice, clase, parameterMode));
         return this;
     }
 

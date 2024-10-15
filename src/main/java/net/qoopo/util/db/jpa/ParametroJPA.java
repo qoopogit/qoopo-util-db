@@ -1,6 +1,7 @@
 package net.qoopo.util.db.jpa;
 
 import java.io.Serializable;
+
 import jakarta.persistence.ParameterMode;
 
 /**
@@ -11,8 +12,8 @@ public class ParametroJPA implements Serializable {
 
     private String parametro;
     private transient Object valor;
-    //usado para los parametros de los sp
-//    private int indice;
+    // usado para los parametros de los sp
+    private int indice = 0;
     private Class parameterClass;
     private ParameterMode parameterMode;
 
@@ -25,20 +26,23 @@ public class ParametroJPA implements Serializable {
         this.valor = valor;
     }
 
+    public ParametroJPA(int indice, Object valor) {
+        this.indice = indice;
+        this.valor = valor;
+    }
+
     public ParametroJPA(String parametro, Class parameterClass, ParameterMode parameterMode) {
         this.parametro = parametro;
         this.parameterClass = parameterClass;
         this.parameterMode = parameterMode;
     }
 
-    
-//    public ParametroJPA(int indice, Class parameterClass, ParameterMode parameterMode) {
-//        this.indice = indice;
-//        this.parameterClass = parameterClass;
-//        this.parameterMode = parameterMode;
-//    }
+    public ParametroJPA(int indice, Class parameterClass, ParameterMode parameterMode) {
+        this.indice = indice;
+        this.parameterClass = parameterClass;
+        this.parameterMode = parameterMode;
+    }
 
- 
     public String getParametro() {
         return parametro;
     }
@@ -99,12 +103,12 @@ public class ParametroJPA implements Serializable {
         this.parameterClass = parameterClass;
     }
 
-//    public int getIndice() {
-//        return indice;
-//    }
-//
-//    public void setIndice(int indice) {
-//        this.indice = indice;
-//    }
+    public int getIndice() {
+        return indice;
+    }
+
+    public void setIndice(int indice) {
+        this.indice = indice;
+    }
 
 }

@@ -1,5 +1,6 @@
 package net.qoopo.util.db.jpa;
 
+import java.io.Closeable;
 import java.util.logging.Logger;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -10,13 +11,14 @@ import jakarta.persistence.Persistence;
  *
  * @author Alberto
  */
-public class Transaccion {
+public class Transaccion implements Closeable {
 
-    private String dataSourceName = "cntPU";
-    public static final Logger log = Logger.getLogger("cnt-util-db");
+    private String dataSourceName = "";
+    public static final Logger log = Logger.getLogger("transaction");
     //
-    //http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/transactions.html
-    //según la pagina superior, indica que nunca hay qu usar un entitymanager por aplicación ni uno entitymanager por sesion de usuario
+    // http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/transactions.html
+    // según la pagina superior, indica que nunca hay que usar un entitymanager por
+    // aplicación ni uno entitymanager por sesion de usuario
     private EntityManagerFactory emf;
 
     public static Transaccion get(String dataSourceName) {
@@ -35,9 +37,9 @@ public class Transaccion {
             return null;
         }
     }
+
     private EntityManager em;
 
-//    private long tInicio;//tiempo inicio de la operacion, cuando abre la conexion
     private Transaccion(String dataSourceName) {
         this.dataSourceName = dataSourceName;
     }
@@ -45,7 +47,7 @@ public class Transaccion {
     /**
      * Abre una sesion para la conexion
      */
-    public void abrir() {
+    public void open() {
         em = getEntityManager(dataSourceName);
     }
 
@@ -55,7 +57,7 @@ public class Transaccion {
      * @throws net.qoopo.qoopo.core.util.exceptions.QoopoException
      */
     public void begin() throws Exception {
-        abrir();
+        open();
         em.getTransaction().begin();
     }
 
@@ -69,7 +71,7 @@ public class Transaccion {
             try {
                 em.getTransaction().commit();
             } finally {
-                cerrar();
+                close();
             }
         }
     }
@@ -83,7 +85,7 @@ public class Transaccion {
             try {
                 em.getTransaction().rollback();
             } finally {
-                cerrar();
+                close();
             }
         }
     }
@@ -91,7 +93,7 @@ public class Transaccion {
     /**
      * Cierra la sesion
      */
-    public void cerrar() {
+    public void close() {
         if (em != null) {
             if (em.isOpen()) {
                 em.close();

@@ -1,5 +1,7 @@
 package net.qoopo.util.db.repository;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import net.qoopo.util.db.dao.CrudDAO;
@@ -8,14 +10,20 @@ import net.qoopo.util.db.jpa.exceptions.IllegalOrphanException;
 import net.qoopo.util.db.jpa.exceptions.NonexistentEntityException;
 import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
 
-public class JpaRepository<T> implements IJpaRepository<T> {
-    public static final Logger log = Logger.getLogger("qoopo-framework-qoopojparepository");
+public class JpaRepository<T, S> implements IJpaRepository<T, S> {
+    public static final Logger log = Logger.getLogger("jparepository");
 
-    private CrudDAO<T> dao;
+    private CrudDAO<T, S> dao;
     private String datasourceName;
+
+    public JpaRepository(String datasourceName) {
+        dao = new CrudDAO<>();
+        this.datasourceName = datasourceName;
+    }
 
     public JpaRepository(Class<T> entityClass, String datasourceName) {
         dao = new CrudDAO<>(entityClass);
+        this.datasourceName = datasourceName;
     }
 
     /**
@@ -24,7 +32,7 @@ public class JpaRepository<T> implements IJpaRepository<T> {
      * @param item
      * @throws net.qoopo.qoopo.core.util.exceptions.QoopoException
      */
-    public void createAll(Iterable<T> item)
+    public void saveAll(Iterable<T> item)
             throws NonexistentEntityException, RollbackFailureException, Exception {
         if (item == null) {
             return;
@@ -51,7 +59,7 @@ public class JpaRepository<T> implements IJpaRepository<T> {
      * @throws net.qoopo.qoopo.core.db.jpa.exceptions.NonexistentEntityException
      * @throws net.qoopo.qoopo.core.db.jpa.exceptions.RollbackFailureException
      */
-    public T create(T item)
+    public T save(T item)
             throws NonexistentEntityException, RollbackFailureException, Exception {
         if (item == null) {
             return null;
@@ -59,7 +67,8 @@ public class JpaRepository<T> implements IJpaRepository<T> {
         Transaccion trx = Transaccion.get(datasourceName);
         trx.begin();
         try {
-            dao.create(trx, item);
+            // item =dao.create(trx, item);
+            item = dao.edit(trx, item);
             trx.commit();
         } catch (Exception e) {
             trx.rollback();
@@ -74,7 +83,7 @@ public class JpaRepository<T> implements IJpaRepository<T> {
      * @param item
      * @return
      */
-    public T createWithoutError(T item) {
+    public T saveWithoutError(T item) {
         try {
             if (item == null) {
                 return null;
@@ -82,7 +91,8 @@ public class JpaRepository<T> implements IJpaRepository<T> {
             Transaccion trx = Transaccion.get(datasourceName);
             trx.begin();
             try {
-                dao.create(trx, item);
+                // dao.create(trx, item);
+                item = (T) dao.edit(trx, item);
                 trx.commit();
             } catch (Exception e) {
                 trx.rollback();
@@ -100,69 +110,15 @@ public class JpaRepository<T> implements IJpaRepository<T> {
      * @param id
      * @return
      */
-    public T find(Long id) {
+    public Optional<T> find(S id) {
         Transaccion trx = Transaccion.get(datasourceName);
-        trx.abrir();
-        T item = null;
+        trx.open();
+        Optional<T> item = null;
         try {
-            item = (T) dao.find(trx, id);
-            trx.cerrar();
+            item = dao.find(trx, id);
+            trx.close();
         } catch (Exception e) {
-            trx.cerrar();
-        }
-        return item;
-    }
-
-    /**
-     * Edita una lista de entidades en una sola transaccion
-     *
-     * @param item
-     * @throws net.qoopo.qoopo.core.util.exceptions.QoopoException
-     * @throws net.qoopo.qoopo.core.db.jpa.exceptions.NonexistentEntityException
-     * @throws net.qoopo.qoopo.core.db.jpa.exceptions.RollbackFailureException
-     * @throws net.qoopo.qoopo.core.db.jpa.exceptions.IllegalOrphanException
-     */
-    public void editAll(Iterable<T> item)
-            throws NonexistentEntityException, RollbackFailureException, IllegalOrphanException, Exception {
-        if (item == null) {
-            return;
-        }
-        Transaccion trx = Transaccion.get(datasourceName);
-        trx.begin();
-        try {
-            for (T t : item) {
-                dao.edit(trx, t);
-            }
-            trx.commit();
-        } catch (Exception e) {
-            trx.rollback();
-            throw e;
-        }
-    }
-
-    /**
-     * Edita una conciliación
-     *
-     * @param item
-     * @return
-     * @throws net.qoopo.qoopo.core.util.exceptions.QoopoException
-     * @throws net.qoopo.qoopo.core.db.jpa.exceptions.NonexistentEntityException
-     * @throws net.qoopo.qoopo.core.db.jpa.exceptions.RollbackFailureException
-     * @throws net.qoopo.qoopo.core.db.jpa.exceptions.IllegalOrphanException
-     */
-    public T edit(T item)
-            throws NonexistentEntityException, RollbackFailureException, IllegalOrphanException, Exception {
-        if (item == null) {
-            return null;
-        }
-        Transaccion trx = Transaccion.get(datasourceName);
-        trx.begin();
-        try {
-            item = (T) dao.edit(trx, item);
-            trx.commit();
-        } catch (Exception e) {
-            trx.rollback();
-            throw e;
+            trx.close();
         }
         return item;
     }
@@ -219,6 +175,22 @@ public class JpaRepository<T> implements IJpaRepository<T> {
         }
     }
 
+    public void deleteById(S id)
+            throws NonexistentEntityException, RollbackFailureException, IllegalOrphanException, Exception {
+        if (id == null) {
+            return;
+        }
+        Transaccion trx = Transaccion.get(datasourceName);
+        trx.begin();
+        try {
+            dao.deletebyId(trx, id);
+            trx.commit();
+        } catch (Exception e) {
+            trx.rollback();
+            throw e;
+        }
+    }
+
     /**
      * Elimina una entidad sin lanzar exception
      *
@@ -238,5 +210,41 @@ public class JpaRepository<T> implements IJpaRepository<T> {
         } catch (Exception ex) {
             //
         }
+    }
+
+    @Override
+    public List<T> findAll() {
+        List<T> returnValue = null;
+        try {
+            Transaccion trx = Transaccion.get(datasourceName);
+            trx.begin();
+            try {
+                returnValue = dao.findAll(trx);
+                trx.commit();
+            } catch (IllegalOrphanException | NonexistentEntityException | RollbackFailureException e) {
+                trx.rollback();
+            }
+        } catch (Exception ex) {
+            //
+        }
+        return returnValue;
+    }
+
+    @Override
+    public List<T> findAll(int maxResults, int firstResult) {
+        List<T> returnValue = null;
+        try {
+            Transaccion trx = Transaccion.get(datasourceName);
+            trx.begin();
+            try {
+                returnValue = dao.findAll(trx, maxResults, firstResult);
+                trx.commit();
+            } catch (IllegalOrphanException | NonexistentEntityException | RollbackFailureException e) {
+                trx.rollback();
+            }
+        } catch (Exception ex) {
+            //
+        }
+        return returnValue;
     }
 }
