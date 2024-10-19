@@ -21,7 +21,7 @@ import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
  * @author alberto
  * @param <T>
  */
-public class JPA<T> implements Serializable {
+public class JPA<T, ID> implements Serializable {
 
     private static Logger log = Logger.getLogger("JPA");
 
@@ -30,7 +30,7 @@ public class JPA<T> implements Serializable {
         return new JPA<>();
     }
 
-    private Class<T> clase;
+    private Class<T> entityClass;
     private transient EntityManager em;
     private List<ParametroJPA> hints;
     private Parametro param;
@@ -42,6 +42,10 @@ public class JPA<T> implements Serializable {
         //
     }
 
+    public JPA(Class<T> entityClass) {
+        this.entityClass = entityClass;
+    }
+
     public T create(T item) throws RollbackFailureException {
         em.persist(item);
         return item;
@@ -51,7 +55,7 @@ public class JPA<T> implements Serializable {
         return em.merge(item);
     }
 
-    public void deletebyId(Object id)
+    public void deletebyId(ID id)
             throws IllegalOrphanException, NonexistentEntityException, RollbackFailureException {
         em.remove(find(id));
     }
@@ -70,8 +74,8 @@ public class JPA<T> implements Serializable {
 
     private List<T> findEntities(boolean all, int maxResults, int firstResult) {
         try {
-            CriteriaQuery<T> cq = em.getCriteriaBuilder().createQuery(clase);
-            cq.select(cq.from(clase));
+            CriteriaQuery<T> cq = em.getCriteriaBuilder().createQuery(entityClass);
+            cq.select(cq.from(entityClass));
             TypedQuery<T> q = em.createQuery(cq);
             if (!all) {
                 q.setMaxResults(maxResults);
@@ -83,14 +87,14 @@ public class JPA<T> implements Serializable {
         }
     }
 
-    public Optional<T> find(Object id) {
-        return Optional.ofNullable(em.find(clase, id));
+    public Optional<T> find(ID id) {
+        return Optional.ofNullable(em.find(entityClass, id));
     }
 
     public Long getCount() {
         try {
             CriteriaQuery<Long> cq = em.getCriteriaBuilder().createQuery(Long.class);
-            Root<T> rt = cq.from(clase);
+            Root<T> rt = cq.from(entityClass);
             cq.select(em.getCriteriaBuilder().count(rt));
             Query q = em.createQuery(cq);
             return ((Long) q.getSingleResult());
@@ -105,13 +109,12 @@ public class JPA<T> implements Serializable {
      *
      * @param q
      */
-    private void configQuery(Query q) {
+    private Query configQuery(Query q) {
         if (param != null && param.getLista() != null && !param.getLista().isEmpty()) {
             param.getLista().forEach(p -> {
-                if(p.getIndice()>0)
-                {
+                if (p.getIndice() > 0) {
                     q.setParameter(p.getIndice(), p.getValor());
-                }else{
+                } else {
                     q.setParameter((String) p.getParametro(), p.getValor());
                 }
             });
@@ -126,6 +129,7 @@ public class JPA<T> implements Serializable {
         if (firstResult > -1) {
             q.setFirstResult(firstResult);
         }
+        return q;
     }
 
     /**
@@ -142,13 +146,30 @@ public class JPA<T> implements Serializable {
     }
 
     /**
-     * Ejecuta un namedQuery y devuelve un Objeto
+     * Ejecuta un namedQuery y devuelve <code>T</code>
      *
      * @param query
      * @return
      */
-    public Object ejecutarNamedQuery(String query) {
+    public T ejecutarNamedQuery(String query) {
         try {
+            TypedQuery<T> q = em.createNamedQuery(query, entityClass);
+            configQuery(q);
+            return q.getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Ejecuta un namedQuery y devuelve <code>Object</code>
+     *
+     * @param query
+     * @return
+     */
+    public Object ejecutarNamedQueryObject(String query) {
+        try {
+            // return configQuery(em.createNamedQuery(query)).getSingleResult();
             Query q = em.createNamedQuery(query);
             configQuery(q);
             return q.getSingleResult();
@@ -165,7 +186,7 @@ public class JPA<T> implements Serializable {
      */
     public List<T> ejecutarNamedQueryList(String query) {
         try {
-            Query q = em.createNamedQuery(query);
+            TypedQuery<T> q = em.createNamedQuery(query, entityClass);
             configQuery(q);
             return q.getResultList();
         } finally {
@@ -181,7 +202,7 @@ public class JPA<T> implements Serializable {
      */
     public T ejecutarQuery(String query) {
         try {
-            TypedQuery<T> q = em.createQuery(query, clase);
+            TypedQuery<T> q = em.createQuery(query, entityClass);
             configQuery(q);
             return q.getSingleResult();
         } finally {
@@ -197,7 +218,7 @@ public class JPA<T> implements Serializable {
      */
     public List<T> ejecutarQueryList(String query) {
         try {
-            TypedQuery<T> q = em.createQuery(query, clase);
+            TypedQuery<T> q = em.createQuery(query, entityClass);
             configQuery(q);
             return q.getResultList();
         } finally {
@@ -309,37 +330,37 @@ public class JPA<T> implements Serializable {
         return hints;
     }
 
-    public JPA<T> setHints(List<ParametroJPA> hints) {
+    public JPA<T, ID> setHints(List<ParametroJPA> hints) {
         this.hints = hints;
         return this;
     }
 
-    public JPA<T> setClase(Class<T> entityClass) {
-        this.clase = entityClass;
+    public JPA<T, ID> setEntityClass(Class<T> entityClass) {
+        this.entityClass = entityClass;
         return this;
     }
 
-    public JPA<T> setEm(EntityManager em) {
+    public JPA<T, ID> setEm(EntityManager em) {
         this.em = em;
         return this;
     }
 
-    public JPA<T> setParam(Parametro param) {
+    public JPA<T, ID> setParam(Parametro param) {
         this.param = param;
         return this;
     }
 
-    public JPA<T> setStoreParam(Parametro param) {
+    public JPA<T, ID> setStoreParam(Parametro param) {
         this.storeParam = param;
         return this;
     }
 
-    public JPA<T> setMaxResults(int maxResults) {
+    public JPA<T, ID> setMaxResults(int maxResults) {
         this.maxResults = maxResults;
         return this;
     }
 
-    public JPA<T> setFirstResult(int firstResult) {
+    public JPA<T, ID> setFirstResult(int firstResult) {
         this.firstResult = firstResult;
         return this;
     }

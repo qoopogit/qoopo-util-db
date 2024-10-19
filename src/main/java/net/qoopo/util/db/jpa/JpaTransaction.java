@@ -11,7 +11,7 @@ import jakarta.persistence.Persistence;
  *
  * @author Alberto
  */
-public class Transaccion implements Closeable {
+public class JpaTransaction implements Closeable {
 
     private String dataSourceName = "";
     public static final Logger log = Logger.getLogger("transaction");
@@ -21,8 +21,8 @@ public class Transaccion implements Closeable {
     // aplicación ni uno entitymanager por sesion de usuario
     private EntityManagerFactory emf;
 
-    public static Transaccion get(String dataSourceName) {
-        return new Transaccion(dataSourceName);
+    public static JpaTransaction get(String dataSourceName) {
+        return new JpaTransaction(dataSourceName);
     }
 
     public EntityManager getEntityManager(String dataSourceName) {
@@ -40,7 +40,7 @@ public class Transaccion implements Closeable {
 
     private EntityManager em;
 
-    private Transaccion(String dataSourceName) {
+    private JpaTransaction(String dataSourceName) {
         this.dataSourceName = dataSourceName;
     }
 

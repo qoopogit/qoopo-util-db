@@ -4,9 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
-import net.qoopo.util.db.dao.JpaCrudDAO;
+import net.qoopo.util.db.dao.TransactionJpaCrudDAO;
+import net.qoopo.util.db.jpa.JpaTransaction;
 import net.qoopo.util.db.jpa.exceptions.IllegalOrphanException;
 import net.qoopo.util.db.jpa.exceptions.NonexistentEntityException;
 import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
@@ -14,22 +13,19 @@ import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
 /**
  * Repositorio JPA para las operaciones CRUD
  */
-public class JpaRepository<T, ID> implements CrudRepository<T, ID> {
+public class JpaRepositoryTransaction<T, ID> implements CrudRepository<T, ID> {
     public static final Logger log = Logger.getLogger("jparepository");
 
-    protected JpaCrudDAO<T, ID> crudDao;
+    protected TransactionJpaCrudDAO<T, ID> crudDao;
     protected String datasourceName;
-    protected EntityManagerFactory emf;
 
-    public JpaRepository(String datasourceName) {
-        emf = Persistence.createEntityManagerFactory(datasourceName);
-        crudDao = new JpaCrudDAO<>(emf);
+    public JpaRepositoryTransaction(String datasourceName) {
+        crudDao = new TransactionJpaCrudDAO<>();
         this.datasourceName = datasourceName;
     }
 
-    public JpaRepository(Class<T> entityClass, String datasourceName) {
-        emf = Persistence.createEntityManagerFactory(datasourceName);
-        crudDao = new JpaCrudDAO<>(entityClass, emf);
+    public JpaRepositoryTransaction(Class<T> entityClass, String datasourceName) {
+        crudDao = new TransactionJpaCrudDAO<>(entityClass);
         this.datasourceName = datasourceName;
     }
 
@@ -44,8 +40,16 @@ public class JpaRepository<T, ID> implements CrudRepository<T, ID> {
         if (item == null) {
             return;
         }
-        for (T t : item) {
-            crudDao.create(t);
+        JpaTransaction trx = JpaTransaction.get(datasourceName);
+        trx.begin();
+        try {
+            for (T t : item) {
+                crudDao.create(trx, t);
+            }
+            trx.commit();
+        } catch (RollbackFailureException | NonexistentEntityException e) {
+            trx.rollback();
+            throw e;
         }
     }
 
@@ -64,7 +68,16 @@ public class JpaRepository<T, ID> implements CrudRepository<T, ID> {
         if (item == null) {
             return null;
         }
-        item = crudDao.edit(item);
+        JpaTransaction trx = JpaTransaction.get(datasourceName);
+        trx.begin();
+        try {
+            // item =dao.create(trx, item);
+            item = crudDao.edit(trx, item);
+            trx.commit();
+        } catch (Exception e) {
+            trx.rollback();
+            throw e;
+        }
         return item;
     }
 
@@ -83,9 +96,16 @@ public class JpaRepository<T, ID> implements CrudRepository<T, ID> {
         if (item == null) {
             return;
         }
-
-        for (T t : item) {
-            crudDao.delete(t);
+        JpaTransaction trx = JpaTransaction.get(datasourceName);
+        trx.begin();
+        try {
+            for (T t : item) {
+                crudDao.delete(trx, t);
+            }
+            trx.commit();
+        } catch (Exception e) {
+            trx.rollback();
+            throw e;
         }
     }
 
@@ -104,7 +124,15 @@ public class JpaRepository<T, ID> implements CrudRepository<T, ID> {
         if (item == null) {
             return;
         }
-        crudDao.delete(item);
+        JpaTransaction trx = JpaTransaction.get(datasourceName);
+        trx.begin();
+        try {
+            crudDao.delete(trx, item);
+            trx.commit();
+        } catch (Exception e) {
+            trx.rollback();
+            throw e;
+        }
     }
 
     @Override
@@ -113,7 +141,15 @@ public class JpaRepository<T, ID> implements CrudRepository<T, ID> {
         if (id == null) {
             return;
         }
-        crudDao.deletebyId(id);
+        JpaTransaction trx = JpaTransaction.get(datasourceName);
+        trx.begin();
+        try {
+            crudDao.deletebyId(trx, id);
+            trx.commit();
+        } catch (Exception e) {
+            trx.rollback();
+            throw e;
+        }
     }
 
     /**
@@ -124,16 +160,51 @@ public class JpaRepository<T, ID> implements CrudRepository<T, ID> {
      */
     @Override
     public Optional<T> find(ID id) {
-        return crudDao.find(id);
+        JpaTransaction trx = JpaTransaction.get(datasourceName);
+        trx.open();
+        Optional<T> item = null;
+        try {
+            item = crudDao.find(trx, id);
+            trx.close();
+        } catch (Exception e) {
+            trx.close();
+        }
+        return item;
     }
 
     @Override
     public List<T> findAll() {
-        return crudDao.findAll();
+        List<T> returnValue = null;
+        try {
+            JpaTransaction trx = JpaTransaction.get(datasourceName);
+            trx.begin();
+            try {
+                returnValue = crudDao.findAll(trx);
+                trx.commit();
+            } catch (IllegalOrphanException | NonexistentEntityException | RollbackFailureException e) {
+                trx.rollback();
+            }
+        } catch (Exception ex) {
+            //
+        }
+        return returnValue;
     }
 
     @Override
     public List<T> findAll(int maxResults, int firstResult) {
-        return crudDao.findAll(maxResults, firstResult);
+        List<T> returnValue = null;
+        try {
+            JpaTransaction trx = JpaTransaction.get(datasourceName);
+            trx.begin();
+            try {
+                returnValue = crudDao.findAll(trx, maxResults, firstResult);
+                trx.commit();
+            } catch (IllegalOrphanException | NonexistentEntityException | RollbackFailureException e) {
+                trx.rollback();
+            }
+        } catch (Exception ex) {
+            //
+        }
+        return returnValue;
     }
 }

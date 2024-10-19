@@ -1,25 +1,27 @@
 package net.qoopo.util.db.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import net.qoopo.util.db.jpa.exceptions.IllegalOrphanException;
 import net.qoopo.util.db.jpa.exceptions.NonexistentEntityException;
 import net.qoopo.util.db.jpa.exceptions.RollbackFailureException;
 
-public interface IJpaRepository<T, S> {
+/**
+ * Repositorio donde se debe almacenar la información
+ */
+public interface CrudRepository<T, ID> {
 
         /**
-         * Crea una lista de entidades en una sola transaccion
+         * Save an array of entities
          *
          * @param item
-         * @throws net.qoopo.qoopo.core.util.exceptions.QoopoException
+         * 
          */
         public void saveAll(Iterable<T> item)
                         throws NonexistentEntityException, RollbackFailureException, Exception;
 
         /**
-         * Crea una entidad
+         * Save a entity
          *
          * @param item
          * @return
@@ -31,27 +33,19 @@ public interface IJpaRepository<T, S> {
                         throws NonexistentEntityException, RollbackFailureException, Exception;
 
         /**
-         * Crea una entidad sin lanzar excepcion
-         *
-         * @param item
-         * @return
-         */
-        public T saveWithoutError(T item);
-
-        /**
-         *
+         * find a entity by id
          * @param entityClass
          * @param id
          * @return
          */
-        public Optional<T> find(S id);
+        public Optional<T> find(ID id);
 
         /**
          * Return all entities
          * 
          * @return
          */
-        public List<T> findAll();
+        public Iterable<T> findAll();
 
         /**
          * Return all entities paged
@@ -60,10 +54,10 @@ public interface IJpaRepository<T, S> {
          * @param firstResult
          * @return
          */
-        public List<T> findAll(int maxResults, int firstResult);
+        public Iterable<T> findAll(int maxResults, int firstResult);
 
         /**
-         * Elimina una lista de entidades en una transaccion
+         * Delete an array of entities
          *
          * @param item
          * @throws net.qoopo.qoopo.core.util.exceptions.QoopoException
@@ -75,7 +69,7 @@ public interface IJpaRepository<T, S> {
                         throws NonexistentEntityException, RollbackFailureException, IllegalOrphanException, Exception;
 
         /**
-         * Elimina una entidad
+         * Delete an entity
          *
          * @param item
          * @throws net.qoopo.qoopo.core.util.exceptions.QoopoException
@@ -86,14 +80,16 @@ public interface IJpaRepository<T, S> {
         public void delete(T item)
                         throws NonexistentEntityException, RollbackFailureException, IllegalOrphanException, Exception;
 
-        public void deleteById(S id)
+        /**
+         * Delete an entity by Id
+         * 
+         * @param item
+         * @throws NonexistentEntityException
+         * @throws RollbackFailureException
+         * @throws IllegalOrphanException
+         * @throws Exception
+         */
+        public void deleteById(ID item)
                         throws NonexistentEntityException, RollbackFailureException, IllegalOrphanException, Exception;
 
-        /**
-         * Elimina una entidad sin lanzar exception
-         *
-         * @param item
-         *
-         */
-        public void deleteSilent(T item);
 }
